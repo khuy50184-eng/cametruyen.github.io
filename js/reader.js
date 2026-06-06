@@ -93,7 +93,6 @@ function loadChuong(so) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   // Cập nhật URL mà không reload trang
-  // Giúp bookmark đúng chương đang đọc
   const url_moi = `doc-truyen.html?id=${truyen_hien_tai.id}&chuong=${so}`;
   history.pushState(null, '', url_moi);
 
@@ -151,7 +150,6 @@ function ganCacNut() {
   // Nút chế độ tối
   document.getElementById('nut-toi').addEventListener('click', function() {
     document.body.classList.toggle('dark-mode');
-    // Lưu trạng thái vào localStorage
     const la_toi = document.body.classList.contains('dark-mode');
     localStorage.setItem('che_do_toi', la_toi);
   });
@@ -162,27 +160,27 @@ function ganCacNut() {
 // CỠ CHỮ
 // ----------------------------------------------------
 
-// Hàm gọi từ onclick trên nút HTML
 function datCochu(co) {
   const body = document.getElementById('reader-body');
 
-  // Xóa tất cả class cỡ chữ cũ (Lưu ý: đổi từ 'font-lon' thành 'font-to' cho khớp với file html cũ của bạn nếu cần, ở đây giữ nguyên theo code của bạn là font-lon)
   body.classList.remove('font-nho', 'font-vua', 'font-lon');
-
-  // Thêm class mới
   body.classList.add('font-' + co);
 
-  // Bỏ active tất cả nút, thêm active đúng nút
   document.querySelectorAll('.btn-co-chu').forEach(n => n.classList.remove('active'));
-  document.getElementById('btn-co-' + co).classList.add('active');
+  
+  // Xử lý thông minh giữa 'to' và 'lon' để khớp ID HTML của bạn
+  const id_nut = (co === 'to' || co === 'lon') ? 'btn-co-lon' : 'btn-co-' + co;
+  const nut_active = document.getElementById(id_nut);
+  if (nut_active) {
+    nut_active.classList.add('active');
+  }
 
-  // Lưu lựa chọn
   localStorage.setItem('co_chu', co);
 }
 
 
 // ----------------------------------------------------
-// FONT CHỮ (Đoạn bị thiếu được viết tiếp hoàn chỉnh ở đây)
+// FONT CHỮ
 // ----------------------------------------------------
 
 function datFont(ten) {
@@ -191,22 +189,23 @@ function datFont(ten) {
   body.classList.add('font-' + ten);
 
   document.querySelectorAll('.btn-font').forEach(n => n.classList.remove('active'));
-  document.getElementById('btn-font-' + ten).classList.add('active');
+  const nut_active = document.getElementById('btn-font-' + ten);
+  if (nut_active) {
+    nut_active.classList.add('active');
+  }
 
   localStorage.setItem('font_chu', ten);
 }
 
 
 // ----------------------------------------------------
-// BỔ SUNG CÁC HÀM TIỆN ÍCH CÒN THIẾU
+// BỔ SUNG CÁC HÀM TIỆN ÍCH
 // ----------------------------------------------------
 
-// 1. Hàm lấy thông tin chương dựa vào số chương
 function layChung(truyen, so) {
   return truyen.chapters.find(c => c.so === so);
 }
 
-// 2. Hàm lưu bookmark thủ công khi bấm nút
 function luuBookmark() {
   if (!truyen_hien_tai) return;
 
@@ -219,7 +218,6 @@ function luuBookmark() {
   };
   localStorage.setItem('bookmarks', JSON.stringify(ds));
 
-  // Hiện thông báo Toast (nếu có phần tử hiển thị toast, nếu không có thì dùng alert)
   const toast = document.getElementById('toast');
   if (toast) {
     toast.style.display = 'block';
@@ -229,7 +227,6 @@ function luuBookmark() {
   }
 }
 
-// 3. Hàm tự động lưu vị trí chương hiện tại vào lịch sử đọc
 function luuViTriDoc() {
   if (!truyen_hien_tai) return;
   const ds = JSON.parse(localStorage.getItem('lich_su_doc') || '{}');
@@ -237,17 +234,13 @@ function luuViTriDoc() {
   localStorage.setItem('lich_su_doc', JSON.stringify(ds));
 }
 
-// 4. Hàm khôi phục các cài đặt đã lưu cũ khi người dùng quay lại/F5 trang web
 function khoiPhucCaiDat() {
-  // Khôi phục cỡ chữ (mặc định là 'vua')
   const co_chu_cu = localStorage.getItem('co_chu') || 'vua';
   datCochu(co_chu_cu);
 
-  // Khôi phục font chữ (mặc định là 'serif')
   const font_cu = localStorage.getItem('font_chu') || 'serif';
   datFont(font_cu);
 
-  // Khôi phục chế độ tối (Dark mode)
   const la_toi_cu = localStorage.getItem('che_do_toi');
   if (la_toi_cu === 'true') {
     document.body.classList.add('dark-mode');
