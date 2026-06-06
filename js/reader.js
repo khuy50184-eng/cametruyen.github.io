@@ -71,7 +71,7 @@ function loadChuong(so) {
 
   // Cập nhật nội dung hiển thị
   document.getElementById('chuong-tieu-de').textContent = chuong.tieu_de;
-  document.getElementById('chuong-phu-de').textContent  = chuong.phu_de;
+  document.getElementById('chuong-phu-de').textContent  = chuong.phu_de || '';
   document.getElementById('noi-dung').innerHTML          = chuong.noi_dung;
 
   // Cập nhật dropdown
@@ -166,7 +166,7 @@ function ganCacNut() {
 function datCochu(co) {
   const body = document.getElementById('reader-body');
 
-  // Xóa tất cả class cỡ chữ cũ
+  // Xóa tất cả class cỡ chữ cũ (Lưu ý: đổi từ 'font-lon' thành 'font-to' cho khớp với file html cũ của bạn nếu cần, ở đây giữ nguyên theo code của bạn là font-lon)
   body.classList.remove('font-nho', 'font-vua', 'font-lon');
 
   // Thêm class mới
@@ -182,7 +182,7 @@ function datCochu(co) {
 
 
 // ----------------------------------------------------
-// FONT CHỮ
+// FONT CHỮ (Đoạn bị thiếu được viết tiếp hoàn chỉnh ở đây)
 // ----------------------------------------------------
 
 function datFont(ten) {
@@ -190,4 +190,68 @@ function datFont(ten) {
   body.classList.remove('font-serif', 'font-sans', 'font-mono');
   body.classList.add('font-' + ten);
 
-  document.querySelectorAll('.btn-font').forEach(n =>
+  document.querySelectorAll('.btn-font').forEach(n => n.classList.remove('active'));
+  document.getElementById('btn-font-' + ten).classList.add('active');
+
+  localStorage.setItem('font_chu', ten);
+}
+
+
+// ----------------------------------------------------
+// BỔ SUNG CÁC HÀM TIỆN ÍCH CÒN THIẾU
+// ----------------------------------------------------
+
+// 1. Hàm lấy thông tin chương dựa vào số chương
+function layChung(truyen, so) {
+  return truyen.chapters.find(c => c.so === so);
+}
+
+// 2. Hàm lưu bookmark thủ công khi bấm nút
+function luuBookmark() {
+  if (!truyen_hien_tai) return;
+
+  const ds = JSON.parse(localStorage.getItem('bookmarks') || '{}');
+  ds[truyen_hien_tai.id] = {
+    truyen_id:  truyen_hien_tai.id,
+    tieu_de:    truyen_hien_tai.tieu_de,
+    so_chuong:  so_chuong_hien_tai,
+    thoi_gian:  new Date().toISOString()
+  };
+  localStorage.setItem('bookmarks', JSON.stringify(ds));
+
+  // Hiện thông báo Toast (nếu có phần tử hiển thị toast, nếu không có thì dùng alert)
+  const toast = document.getElementById('toast');
+  if (toast) {
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 2000);
+  } else {
+    alert(`Đã đánh dấu thành công Chương ${so_chuong_hien_tai}!`);
+  }
+}
+
+// 3. Hàm tự động lưu vị trí chương hiện tại vào lịch sử đọc
+function luuViTriDoc() {
+  if (!truyen_hien_tai) return;
+  const ds = JSON.parse(localStorage.getItem('lich_su_doc') || '{}');
+  ds[truyen_hien_tai.id] = so_chuong_hien_tai;
+  localStorage.setItem('lich_su_doc', JSON.stringify(ds));
+}
+
+// 4. Hàm khôi phục các cài đặt đã lưu cũ khi người dùng quay lại/F5 trang web
+function khoiPhucCaiDat() {
+  // Khôi phục cỡ chữ (mặc định là 'vua')
+  const co_chu_cu = localStorage.getItem('co_chu') || 'vua';
+  datCochu(co_chu_cu);
+
+  // Khôi phục font chữ (mặc định là 'serif')
+  const font_cu = localStorage.getItem('font_chu') || 'serif';
+  datFont(font_cu);
+
+  // Khôi phục chế độ tối (Dark mode)
+  const la_toi_cu = localStorage.getItem('che_do_toi');
+  if (la_toi_cu === 'true') {
+    document.body.classList.add('dark-mode');
+  } else {
+    document.body.classList.remove('dark-mode');
+  }
+}
