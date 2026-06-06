@@ -8,11 +8,67 @@ document.addEventListener('DOMContentLoaded', function() {
   hienThiTruyen('tat-ca');    // Hiện toàn bộ truyện mặc định
   ganSuKienTimKiem();
   ganSuKienLocLoai();
+  hienThiLichSuDoc();         // <-- BỔ SUNG: Chạy hàm hiển thị lịch sử đọc
 });
 
 
 // ----------------------------------------------------
-// HIỂN THỊ LƯỚI TRUYỆN
+// HIỂN THỊ LƯỚI TRUYỆN GẦN ĐÂY (BỔ SUNG)
+// ----------------------------------------------------
+function hienThiLichSuDoc() {
+  const lich_su = JSON.parse(localStorage.getItem('lich_su_doc') || '{}');
+  const historyGrid = document.getElementById('history-grid');
+  const khuVucLichSu = document.getElementById('khu-vuc-lich-su');
+  
+  // Kiểm tra xem các phần tử HTML có tồn tại trong trang không
+  if (!historyGrid || !khuVucLichSu) return;
+
+  // Nếu không có lịch sử đọc nào, giữ nguyên trạng thái ẩn của khu vực này
+  if (Object.keys(lich_su).length === 0) {
+    khuVucLichSu.style.display = 'none';
+    return;
+  }
+
+  // Nếu có lịch sử, đổi thuộc tính sang 'block' để hiển thị lên màn hình
+  khuVucLichSu.style.display = 'block';
+  historyGrid.innerHTML = ''; // Xóa dữ liệu cũ
+
+  // Lặp qua từng ID truyện được lưu trong lịch sử đọc
+  for (const truyenId in lich_su) {
+    const chuongHienTai = lich_su[truyenId];
+    // layTruyenTheoId là hàm có sẵn từ file data.js của bạn
+    const truyen = layTruyenTheoId(truyenId); 
+    
+    if (truyen) {
+      // Tạo khung card truyện tương tự danh sách chính
+      const card = document.createElement('div');
+      card.className = 'story-card';
+      card.innerHTML = `
+        <div class="cover-placeholder" style="background: ${truyen.mau_nen}">
+          ${truyen.bieu_tuong}
+        </div>
+        <div class="card-info">
+          <div class="card-title">${truyen.tieu_de}</div>
+          <div class="card-author">${truyen.tac_gia}</div>
+          <p style="color:#533AB7; font-size:12px; font-weight:bold; font-family:sans-serif; margin-top:6px;">
+            ⏱️ Đang đọc: Chương ${chuongHienTai}
+          </p>
+        </div>
+      `;
+      
+      // Khi click vào truyện trong lịch sử, chuyển thẳng tới chương đang đọc dở
+      card.addEventListener('click', function() {
+        window.location.href = `doc-truyen.html?id=${truyen.id}&chuong=${chuongHienTai}`;
+      });
+      
+      historyGrid.appendChild(card);
+    }
+  }
+}
+
+
+// ----------------------------------------------------
+// HIỂN THỊ LƯỚI TRUYỆN CHÍNH
 // ----------------------------------------------------
 
 function hienThiTruyen(the_loai) {
@@ -69,8 +125,7 @@ function taoTheHTML(truyen) {
     </div>
   `;
 
-  // Khi click vào thẻ → chuyển sang trang đọc
-  // Truyền ID truyện qua URL parameter
+  // Khi click vào thẻ → chuyển sang trang đọc mặc định từ chương 1
   card.addEventListener('click', function() {
     window.location.href = `doc-truyen.html?id=${truyen.id}&chuong=1`;
   });
