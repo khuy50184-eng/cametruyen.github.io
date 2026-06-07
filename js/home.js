@@ -1,27 +1,16 @@
-// ====================================================
-// HOME.JS — Logic trang chủ
-// Chạy khi trang index.html được tải
-// ====================================================
-
-// Chạy ngay khi DOM đã sẵn sàng
 document.addEventListener('DOMContentLoaded', function() {
-  hienThiTruyen('tat-ca');    // Hiện toàn bộ truyện mặc định
+  hienThiTruyen('tat-ca');
   ganSuKienTimKiem();
   ganSuKienLocLoai();
-  hienThiLichSuDoc();         // Chạy hàm hiển thị lịch sử đọc
+  hienThiLichSuDoc();
 });
 
-
-// ----------------------------------------------------
-// HIỂN THỊ LƯỚI TRUYỆN GẦN ĐÂY (ĐÃ SỬA THEO PHONG CÁCH MỚI)
-// ----------------------------------------------------
 function hienThiLichSuDoc() {
   const lich_su = JSON.parse(localStorage.getItem('lich_su_doc') || '{}');
   const historyGrid = document.getElementById('history-grid');
   const khuVucLichSu = document.getElementById('khu-vuc-lich-su');
   
   if (!historyGrid || !khuVucLichSu) return;
-
   if (Object.keys(lich_su).length === 0) {
     khuVucLichSu.style.display = 'none';
     return;
@@ -37,8 +26,6 @@ function hienThiLichSuDoc() {
     if (truyen) {
       const card = document.createElement('div');
       card.className = 'story-card';
-      
-      // Đồng bộ cấu trúc ảnh bìa gradient phẳng, hiện đại
       card.innerHTML = `
         <div class="cover-wrapper" style="background: linear-gradient(135deg, ${truyen.mau_nen} 0%, #1e293b 100%)">
           <span class="story-emoji">${truyen.bieu_tuong}</span>
@@ -47,25 +34,16 @@ function hienThiLichSuDoc() {
         <div class="card-info">
           <h3 class="card-title">${truyen.tieu_de}</h3>
           <div class="card-author">✍️ ${truyen.tac_gia}</div>
-          <p style="color:var(--mau-chinh, #10b981); font-size:12px; font-weight:700; margin-top:8px;">
-            Đang đọc dở...
-          </p>
+          <p style="color:#10b981; font-size:12px; font-weight:700; margin-top:6px;">Đang đọc dở...</p>
         </div>
       `;
-      
       card.addEventListener('click', function() {
         window.location.href = `doc-truyen.html?id=${truyen.id}&chuong=${chuongHienTai}`;
       });
-      
       historyGrid.appendChild(card);
     }
   }
 }
-
-
-// ----------------------------------------------------
-// HIỂN THỊ LƯỚI TRUYỆN CHÍNH
-// ----------------------------------------------------
 
 function hienThiTruyen(the_loai) {
   const danh_sach = locTheoLoai(the_loai);
@@ -73,17 +51,15 @@ function hienThiTruyen(the_loai) {
   grid.innerHTML = '';
 
   if (danh_sach.length === 0) {
-    grid.innerHTML = '<p style="color:#888;font-size:14px;font-family:sans-serif;">Không tìm thấy truyện nào.</p>';
+    grid.innerHTML = '<p style="color:#888;font-size:14px;">Không tìm thấy truyện nào.</p>';
     return;
   }
 
   danh_sach.forEach(function(truyen) {
-    const the = taoTheHTML(truyen);
-    grid.appendChild(the);
+    grid.appendChild(taoTheHTML(truyen));
   });
 }
 
-// Tạo 1 phần tử <div> thẻ truyện (ĐÃ ĐỔI TOÀN DIỆN SANG FORM CHUẨN UI/UX THƯƠNG MẠI)
 function taoTheHTML(truyen) {
   const card = document.createElement('div');
   card.className = 'story-card';
@@ -95,7 +71,6 @@ function taoTheHTML(truyen) {
     'viet-nam':    'Việt Nam'
   };
 
-  // Cấu trúc HTML mới: Tách vùng cover-wrapper riêng và card-meta riêng
   card.innerHTML = `
     <div class="cover-wrapper" style="background: linear-gradient(135deg, ${truyen.mau_nen} 0%, #1e293b 100%)">
       <span class="story-emoji">${truyen.bieu_tuong}</span>
@@ -107,14 +82,13 @@ function taoTheHTML(truyen) {
       <h3 class="card-title">${truyen.tieu_de}</h3>
       <div class="card-author">✍️ ${truyen.tac_gia}</div>
       <div class="card-meta">
-        <span class="meta-item text-rating">⭐ ${truyen.danh_gia}</span>
+        <span class="text-rating">⭐ ${truyen.danh_gia}</span>
         <span class="meta-divider">•</span>
-        <span class="meta-item">${(truyen.luot_doc/1000).toFixed(0)}k đọc</span>
+        <span>${(truyen.luot_doc/1000).toFixed(0)}k đọc</span>
       </div>
     </div>
   `;
 
-  // Khi click vào thẻ → chuyển sang trang đọc mặc định từ chương 1
   card.addEventListener('click', function() {
     window.location.href = `doc-truyen.html?id=${truyen.id}&chuong=1`;
   });
@@ -122,53 +96,34 @@ function taoTheHTML(truyen) {
   return card;
 }
 
-
-// ----------------------------------------------------
-// TÌM KIẾM
-// ----------------------------------------------------
-
 function ganSuKienTimKiem() {
   const o_tim = document.getElementById('search-input');
   if (!o_tim) return;
-
   o_tim.addEventListener('input', function() {
     const tu_khoa = this.value.trim();
-
     if (tu_khoa === '') {
       hienThiTruyen('tat-ca');
       return;
     }
-
     const ket_qua = timKiem(tu_khoa);
     const grid = document.getElementById('story-grid');
     grid.innerHTML = '';
-
     if (ket_qua.length === 0) {
-      grid.innerHTML = `<p style="color:#888;font-size:14px;font-family:sans-serif;">
-        Không tìm thấy truyện với từ khóa "<strong>${tu_khoa}</strong>"
-      </p>`;
+      grid.innerHTML = `<p style="color:#888;font-size:14px;">Không tìm thấy truyện với từ khóa "${tu_khoa}"</p>`;
       return;
     }
-
     ket_qua.forEach(function(truyen) {
       grid.appendChild(taoTheHTML(truyen));
     });
   });
 }
 
-
-// ----------------------------------------------------
-// LỌC THEO THỂ LOẠI
-// ----------------------------------------------------
-
 function ganSuKienLocLoai() {
   const cac_nut = document.querySelectorAll('[data-loai]');
-
   cac_nut.forEach(function(nut) {
     nut.addEventListener('click', function() {
       cac_nut.forEach(n => n.classList.remove('active'));
       this.classList.add('active');
-
       const loai = this.getAttribute('data-loai');
       hienThiTruyen(loai);
     });
